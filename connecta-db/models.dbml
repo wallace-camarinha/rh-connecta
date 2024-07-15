@@ -1,0 +1,117 @@
+table users {
+    id                      integer             [primary key]
+    external_id             varchar(32)         [not null]
+    name                    varchar(128)        [note: 'special characters allowed']
+    email                   varchar(128)        [not null]
+    document_number         varchar(32)
+    phone_number            varchar(32)
+    gender                  varchar(16)
+    role                    varchar(32)         [not null, default: 'standard'] // define all possible roles
+    rating                  integer
+    rating_amount           integer
+    verified                bool                [note: 'defines the user has passed email verification']
+    two_fa_enabled          bool                [note: 'defines the user has 2fa enabled']
+    company_id              integer             [null, ref: > companies.id]
+    professional_data_id    integer             [null, ref: - professional_data.id]
+    address_id              integer             [null, ref: - addresses.id]
+    created_at              timestamp
+    updated_at              timestamp
+}
+
+table companies {
+    id                      integer             [primary key]
+    external_id             varchar(32)         [not null]
+    name                    varchar(128)
+    document_number         varchar(32)
+    balance                 integer             [note: 'amount of credits available for the company']
+    rating                  integer
+    rating_amount           integer
+    address_id              integer             [null, ref: - addresses.id]
+}
+
+table professional_data {
+    id                      integer             [primary key]
+    external_id             varchar(32)         [not null]
+    summary                 varchar(2048)
+    description             text
+    experience              text
+    tags                    varchar(2048)
+    prefered_model          varchar(32)         [note: 'could be "remote", "in-office" or "hybrid"']
+}
+
+table addresses {
+    id                      integer             [primary key]
+    external_id             varchar(32)         [not null]
+    street                  varchar(256)
+    number                  varchar(16)
+    city                    varchar(128)
+    state                   varchar(128)
+    country                 varchar(64)
+    zip_code                varchar(16)         [note: 'accept only numbers']
+}
+
+table applications {
+    id                      integer             [primary key]
+    external_id             varchar(32)         [not null]
+    user_id                 integer             [ref: > users.id]
+    company_id              integer             [ref: > companies.id]
+    job_id                  integer             [ref: > jobs.id]
+    is_visible              bool                [note: 'determines wether an application was made visible via credits']
+    created_at              timestamp
+    updated_at              timestamp
+}
+
+table jobs {
+    id                      integer             [primary key]
+    external_id             varchar(32)         [not null]
+    title                   varchar(256)
+    description             text
+    model                   varchar(32)         [note: 'could be "remote", "in-office" or "hybrid"'] 
+    location                varchar(128)        // cidade? região? endereço? - o que faremos aqui?
+    applicants_amount       integer             [note: 'how many people have applied for the job']
+    tags                    varchar(1024)
+    metadata                varchar(2048)
+    company_id              integer             [ref: > companies.id]
+    expires_at              timestamp           [null]
+    created_at              timestamp
+    updated_at              timestamp
+}
+
+table credits {
+    id                      integer             [primary key]
+    external_id             varchar(32)         [not null]
+    amount                  integer
+    available_amount        integer
+    is_available            bool                [note: 'indicates the credits are available for use']
+    company_id              integer             [ref: > companies.id]
+    expires_at              timestamp           [null]
+    created_at              timestamp
+    updated_at              timestamp
+}
+
+table orders {
+    id                      integer             [primary key]
+    external_id             varchar(32)         [not null]
+    amount                  integer
+    status                  varchar(36)
+    provider_id             varchar(64)
+    company_id              integer             [ref: > companies.id]
+    credits_id              integer             [ref: - credits.id]
+    created_at              timestamp
+    updated_at              timestamp
+}
+
+table messages {
+    id                      integer             [primary key]
+    from                    integer             [ref: > users.id]
+    to                      integer             [ref: > users.id]
+    content                 text
+    created_at              timestamp
+}
+
+table terms_and_conditions {
+    id                      integer             [primary key]
+    content                 text
+    created_at              timestamp
+    updated_at              timestamp
+}
